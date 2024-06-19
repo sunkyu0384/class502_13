@@ -10,6 +10,6 @@ public class Member {
     private String email;
     private String password;
     private String userName;
-    private LocalDateTime redDt;
+    private LocalDateTime regDt;
     private LocalDateTime modDt;
 }
