@@ -52,10 +52,84 @@ public class JoinServiceTest {
     @Test
     @DisplayName("필수 입력 항목(이메일, 비밀번호, 비밀번호 확인, 회원명, 약관 동의) 검증, 검증 실패 시 BadRequestException 발생")
     void requiredFieldTest() {
-        assertThrows(BadRequestException.class, () -> {
+        assertAll(
+                () -> requiredEachFieldTest("email", true, "이메일"),
+                () -> requiredEachFieldTest("email", false, "이메일"),
+                () -> requiredEachFieldTest("password", true, "비밀번호"),
+                () -> requiredEachFieldTest("password", false, "비밀번호"),
+                () -> requiredEachFieldTest("confirmPassword", true, "비밀번호를 확인"),
+                () -> requiredEachFieldTest("confirmPassword", false, "비밀번호를 확인"),
+                () -> requiredEachFieldTest("userName", true, "회원명"),
+                () -> requiredEachFieldTest("userName", false, "회원명"),
+                () -> requiredEachFieldTest("termsAgree", false, "약관")
+        );
+    }
+
+    void requiredEachFieldTest(String field, boolean isNull, String keyword) {
+       BadRequestException thrown = assertThrows(BadRequestException.class, () -> {
+           RequestJoin form = getData();
+           if (field.equals("email")) {
+               form.setEmail(isNull?null:"  ");
+           } else if (field.equals("password")) {
+                form.setPassword(isNull?null:"  ");
+           } else if (field.equals("confirmPassword")) {
+                form.setConfirmPassword(isNull?null:"  ");
+           } else if (field.equals("userName")) {
+                form.setUserName(isNull?null:"  ");
+           } else if (field.equals("termsAgree")) {
+               form.setTermsAgree(false);
+           }
+
+           service.process(form);
+        }, field + "테스트");
+
+       String message = thrown.getMessage();
+       assertTrue(message.contains(keyword), field + "키워드 테스트");
+    }
+
+    @Test
+    @DisplayName("비밀번호와 확인이 일치하지 않으면 BadRequestException 발생")
+    void passwordMismatchTest() {
+        BadRequestException thrown = assertThrows(BadRequestException.class, () -> {
+           RequestJoin form = getData();
+           form.setConfirmPassword(form.getPassword() + "**");
+           service.process(form);
+        });
+
+        String message = thrown.getMessage();
+        assertTrue(message.contains("비밀번호가 일치하지"));
+    }
+
+    @Test
+    @DisplayName("이메일이 형식에 맞지 않으면 BadRequestException 발생")
+    void emailPatternTest() {
+        BadRequestException thrown = assertThrows(BadRequestException.class, () -> {
             RequestJoin form = getData();
-            form.setEmail(null);
+            form.setEmail("******");
             service.process(form);
         });
+
+        String message = thrown.getMessage();
+        assertTrue(message.contains("이메일 형식이"));
+    }
+    @Test
+    @DisplayName("비밀번호 자리 수가 8자리 미만이면 BadRequestException 발생")
+    void passwordLengthTest() {
+        BadRequestException thrown = assertThrows(BadRequestException.class, () -> {
+            Faker faker = new Faker();
+            RequestJoin form = getData();
+            form.setPassword(faker.regexify("\\w{3,7}").toLowerCase());
+            form.setConfirmPassword(form.getPassword());
+            service.process(form);
+        });
+
+        String message = thrown.getMessage();
+        assertTrue(message.contains("8자리 이상"));
+    }
+
+    @Test
+    @DisplayName("이미 가입된 메일인 경우 DuplicatedMemberException 발생")
+    void duplicateEmailTest() {
+
     }
 }
