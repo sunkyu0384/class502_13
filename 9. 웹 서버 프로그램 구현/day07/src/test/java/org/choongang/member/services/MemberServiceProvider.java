@@ -19,7 +19,7 @@ public class MemberServiceProvider {
     public JoinValidator joinValidator() {
         return new JoinValidator();
     }
-    
+
     public JoinService joinService() {
         return new JoinService(joinValidator());
     }
