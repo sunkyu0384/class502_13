@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,17 +24,21 @@ public class FileSearchController extends HttpServlet {
         if (matcher.find()) {
             String fileName = matcher.group(1);
 
-            File file = new File("C:/uploads/" + fileName);
+            File file = new File("D:/uploads/" + fileName);
             if (file.exists()) {
+                Path source = file.toPath();
+                String contentType = Files.probeContentType(source);
+                resp.setContentType(contentType);
 
                 try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                    // ServletOutputStream
                     OutputStream out = resp.getOutputStream();
-                    out.write(bis.readAllBytes()
-                    );
+                    out.write(bis.readAllBytes());
                 }
 
                 return;
             }
+
         }
 
         // 파일이 없는 경우 - 404 응답 코드
