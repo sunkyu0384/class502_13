@@ -8,8 +8,20 @@ import org.springframework.web.servlet.config.annotation.*;
 @Configuration
 @EnableWebMvc
 @ComponentScan("org.choongang")
-@Import(DBConfig.class)
+@Import({DBConfig.class, MessageConfig.class, InterceptorConfig.class})
+//@RequiredArgsConstructor
 public class MvcConfig implements WebMvcConfigurer {
+
+    /*
+    private final JoinValidator joinValidator;
+
+    // 모든 컨트롤러에 적용될 수 있는 전역 Validator
+    @Override
+    public Validator getValidator() {
+        return joinValidator;
+    }
+    */
+
     @Override
     public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
         configurer.enable();
